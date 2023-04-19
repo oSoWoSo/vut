@@ -180,7 +180,7 @@ function src_pr_number {
 }
 
 function repo_push {
-  git push "$REPO" "HEAD:$HEAD"
+  git push -u "$REPO_NAME" "$HEAD"
   read -p "Press Enter to continue"
 }
 
@@ -343,7 +343,7 @@ PR: $pr_number"
             ;;
           14)
             REPO="$MY_XBPS_REPO"
-            HEAH="$template"
+            HEAD="$template"
             repo_push
             ;;
           15)
