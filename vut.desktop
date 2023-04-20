@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=0.1
+Name=Void Ultimate Tool
+GenericName=System Tool
+Description=Ultimate tool for void linux. You can do almost anything with it.
+Comment=Ultimate tool for void linux. You can do almost anything with it.
+Icon=vut
+Exec=vut
+Terminal=true
+Categories=System;Settings;Accessories;Virtualization;
+Keywords=system;process;task
