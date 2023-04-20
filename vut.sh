@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2162,SC2317
 
 mkdir -p "$HOME/.config/vut"
