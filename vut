@@ -369,6 +369,9 @@ function list_arguments {
     #fi
   #done
 #}
+function manage_services {
+  echo "#TODO"
+  sudo vsv
 }
 # SRC MENU
 function src_list_gen {
@@ -479,6 +482,9 @@ function install__void {
 function install__drivers_nvidia {
   sudo xbps-install dkms nvidia nvtop pkg-config
 }
+function install__essentials {
+  echo "#TODO"
+}
 function install_ansible {
   echo "#TODO"
   # Vytvoření adresáře pro Ansible, pokud neexistuje
@@ -547,6 +553,9 @@ function install_chezmoi {
 function install_distrohopper {
   echo"#TODO"
   git clone https://github.com/oSoWoSo/distrohopper ~/git/dh
+}
+function install_gparted {
+  sudo xbps-install -S gparted btrfs-progs exfatprogs e2fsprogs f2fs-tools dosfstools mtools hfsutils hfsprogs jfsutils util-linux cryptsetup lvm2 nilfs-utils ntfs-3g reiser4progs udftools xfsprogs xfsdump
 }
 function install_lutris {
   echo "$TODO"
