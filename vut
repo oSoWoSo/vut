@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090,SC1091,SC2154,SC2162
-source easybashgui
+
 config_path="$HOME/.config/vut"
 config="$HOME/.config/vut/vut.conf"
 _config() {
@@ -306,7 +306,7 @@ function run_tui {
 ### FUNCTIONS (SORTED BY MENUS)
 # MAIN MENU
 function config_edit {
-  xdg-open "$config"
+  $EDITOR $config
 }
 function config_edit_vars {
   "$clear_yes" >/dev/null 2>&1
@@ -390,6 +390,8 @@ function src_new {
   new="yes"
   read -p "Enter the template name: " template
   vpsm n "$template"
+  echo "$template"
+  _define_menu_src
 }
 function src_choose {
   src_enter
@@ -432,8 +434,7 @@ function src_checksum {
 }
 function src_edit {
   #vpsm et "$template"
-  "$TERMINAL" -e "$EDITOR srcpkgs/$template/template &"
-
+  $EDITOR srcpkgs/$template/template
 }
 function src_build {
   vpsm pkg "$template"
