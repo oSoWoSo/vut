@@ -1,3 +1,6 @@
 [submodule "xxtools"]
 	path = xxtools
 	url = https://github.com/Piraty/xxtools
+[submodule "vbm"]
+	path = vbm
+	url = https://github.com/oSoWoSo/vbm
