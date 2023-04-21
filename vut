@@ -430,7 +430,7 @@ function src_lint {
   vpsm lint "$template"
 }
 function src_checksum {
-  vpsm xgsum "$template"
+  vpsm xgsum "$template" && vpsm xgsum "$template"
 }
 function src_edit {
   #vpsm et "$template"
