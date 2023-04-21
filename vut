@@ -108,8 +108,203 @@ _arguments_if() {
     run_gui
   fi
 }
+# MENU
+_run_menu() {
+  while :
+  do
+    tagged_menu  --width 200 --height 500 "${menu_items[@]}"
+    answer="${?}"
+    if [ ${answer} -eq 0 ]
+    then
+    menu_choice="$( 0< "${dir_tmp}/${file_tmp}" )"
+    menu_actions $menu_choice
+    elif [ ${answer} -eq 1 ]
+    then
+    break
+    else
+    exit
+    fi
+  done
 }
-# config
+_define_menu() {
+  echo "$MSG_define_menu"
+  menu_items=(
+ "1" "xbps-src MENU"
+ "2" "fuzzypkg"
+ "3" "packages MENU"
+ "4" "Update xbps"
+ "5" "Update all"
+ "6" "system monitor"
+ "7" "services"
+ "8" "Tools MENU"
+ "9" "List arguments"
+ "10" "Edit config"
+ "11" "Install essentials MENU"
+ "12" "Install void MENU"
+  )
+
+  function menu_actions {
+    case $1 in
+      1) _define_menu_src;;
+      2) fuzzypkg;;
+      3) _define_menu_xbps;;
+      4) sudo xbps-install -Suv;;
+      5) topgrade;;
+      6) btop;;
+      7) manage_services;;
+      8) _define_menu_tools;; 
+      9) list_arguments;;
+      10) config_edit;;
+      11) install__essentials;;
+      12) install__void;;
+    esac
+  }
+}
+_define_menu_src() {
+  echo "$MSG_define_menu_src"
+  menu_items=(
+ "1" "create NEW template"
+ "2" "choose template"
+ "3" "$template on Repology"
+ "4" "autobump $template"
+ "5" "edit $template"
+ "6" "checksum $template"
+ "7" "lint $template"
+ "8" "build $template"
+ "9" "install packaged $template"
+ "10" "update"
+ "11" "clean $template"
+ "12" "PR check"
+ "13" "create PR"
+ "14" "push"
+ "15" "open $template Homepage"
+ "16" "Back to Main Menu"
+  )
+
+  function menu_actions {
+    case $1 in
+      0) _define_menu;;
+      1) src_new;;
+      2) src_choose;;
+      3) src_repology;;
+      4) src_bump;;
+      5) src_edit;;
+      6) src_checksum;;
+      7) src_lint;;
+      8) src_build;;
+      9) src_install;;
+      10) src_update;;
+      11) src_clean;;
+      12) src_pr_check;;
+      13) src_pr_create;;
+      14) REPO="$MY_XBPS_REPO"; HEAD="$template"; repo_push;;
+      15) src_homepage;;
+    esac
+  }
+}
+_define_menu_xbps() {
+  echo "$MSG_define_menu_xbps"
+  menu_items=(
+ "1" ""
+ "2" ""
+ "3" ""
+ "4" ""
+ "5" ""
+ "6" ""
+ "7" ""
+ "0" "Back to Main Menu"
+  )
+  function menu_actions {
+    case $1 in
+      0) _define_menu;;
+      1) install_package;;
+      2) remove_package;;
+      3) ;;
+      4) ;;
+      5) ;;
+      6) ;;
+      7) ;;
+    esac
+  }
+}
+#### template for future menus ####
+_define_menu_CHANGETHIS() {
+  echo "$MSG_CHANGETHIS"
+  menu_items=(
+ "1" "CHANGETHIS"
+ "2" "CHANGETHIS"
+ "3" "CHANGETHIS"
+ "4" "CHANGETHIS"
+ "5" "CHANGETHIS"
+ "6" "CHANGETHIS"
+ "7" "CHANGETHIS"
+ "0" "Back to Main Menu"
+  )
+
+  function menu_actions {
+    case $1 in
+      0) _define_menu;;
+      1) CHANGETHIS;;
+      2) CHANGETHIS;;
+      3) CHANGETHIS;;
+      4) CHANGETHIS;;
+      5) CHANGETHIS;;
+      6) CHANGETHIS;;
+      7) CHANGETHIS;;
+    esac
+  }
+}
+# menu modes
+function run_gui {
+  unset supermode
+  source easybashgui
+  _define_menu
+  _run_menu
+}
+function run_yad_mode {
+  export supermode="yad"
+  source easybashgui
+  _define_menu
+  _run_menu
+}
+function run_gtkdialog_mode {
+  export supermode="gtkdialog"
+  source easybashgui
+  _define_menu
+  _run_menu
+}
+function run_kdialog_mode {
+  export supermode="kdialog"
+  source easybashgui
+  _define_menu
+  _run_menu
+}
+function run_zenity_mode {
+  export supermode="zenity"
+  source easybashgui
+  _define_menu
+  _run_menu
+}
+function run_xdialog_mode {
+  export supermode="Xdialog"
+  source easybashgui
+  _define_menu
+  _run_menu
+}
+function run_dialog_mode {
+  export supermode="dialog"
+  source easybashgui
+  _define_menu
+  _run_menu
+}
+function run_tui {
+  export supermode="none"
+  source easybashgui
+  _define_menu
+  _run_menu
+}
+### FUNCTIONS (SORTED BY MENUS)
+# MAIN MENU
 function config_edit {
   xdg-open "$config"
 }
@@ -154,9 +349,6 @@ function config_edit_vars {
     esac
   done
 }
-# main menu
-
-#TODO
 function get_arguments {
   cat vut | grep --extended-regexp "function * " | uniq | cut -d' ' -f2 > "$config_path/arguments"
   sed -i '/^$/d' "$config_path/arguments"
@@ -178,7 +370,7 @@ function list_arguments {
   #done
 #}
 }
-# src menu
+# SRC MENU
 function src_list_gen {
   ls srcpkgs/ > "$config_path/list"
 }
@@ -572,146 +764,7 @@ function install_wm_openbox {
   sudo xbps-install jgmenu lxappearance obconf obmenu-generator openbox tint2conf
   obmenu-generator -p -i -u -d -c
 }
-# menus
-_run_menu() {
-  while :
-  do
-    tagged_menu  --width 200 --height 500 "${menu_items[@]}"
-    answer="${?}"
-    if [ ${answer} -eq 0 ]
-    then
-    menu_choice="$( 0< "${dir_tmp}/${file_tmp}" )"
-    menu_actions $menu_choice
-    elif [ ${answer} -eq 1 ]
-    then
-    break
-    else
-    exit
-    fi
-  done
-}
-_define_menu() {
-  echo "$MSG_define_menu"
-  menu_items=(
- "1" "xbps-src"
- "2" "packages"
- "3" "Update xbps"
- "4" "Update all"
- "5" "List arguments"
- "6" "Edit config"
- "7" "Install essentials"
-  )
-
-  function menu_actions {
-    case $1 in
-      1) _define_menu_src;;
-      2) _define_menu_xbps;;
-      3) sudo xbps-install -Suv;;
-      4) topgrade;;
-      5) list_arguments;;
-      6) config_edit;;
-      7) install_essentials;;
-    esac
-  }
-}
-_define_menu_src() {
-  echo "$MSG_define_menu_src"
-  menu_items=(
- "1" "create NEW template"
- "2" "choose template"
- "3" "$template on Repology"
- "4" "autobump $template"
- "5" "edit $template"
- "6" "checksum $template"
- "7" "lint $template"
- "8" "build $template"
- "9" "install packaged $template"
- "10" "update"
- "11" "clean $template"
- "12" "PR check"
- "13" "create PR"
- "14" "push"
- "15" "open $template Homepage"
- "0" "Back to Main Menu"
-  )
-
-  function menu_actions {
-    case $1 in
-      0) _define_menu;;
-      1) src_new;;
-      2) src_choose;;
-      3) src_repology;;
-      4) src_bump;;
-      5) src_edit;;
-      6) src_checksum;;
-      7) src_lint;;
-      8) src_build;;
-      9) src_install;;
-      10) src_update;;
-      11) src_clean;;
-      12) src_pr_check;;
-      13) src_pr_create;;
-      14) REPO="$MY_XBPS_REPO"; HEAD="$template"; repo_push;;
-      15) src_homepage;;
-    esac
-  }
-}
-_define_menu_xbps() {
-  echo "$MSG_define_menu_xbps"
-  menu_items=(
- "1" ""
- "2" ""
- "3" ""
- "4" ""
- "5" ""
- "6" ""
- "7" ""
- "0" "Back to Main Menu"
-  )
-  function menu_actions {
-    case $1 in
-      0) _define_menu;;
-      1) install_package;;
-      2) remove_package;;
-      3) ;;
-      4) ;;
-      5) ;;
-      6) ;;
-      7) ;;
-    esac
-  }
-}
-# template for future menus #######
-_define_menu_CHANGETHIS() {
-  echo "$MSG_CHANGETHIS"
-  menu_items=(
- "1" "CHANGETHIS"
- "2" "CHANGETHIS"
- "3" "CHANGETHIS"
- "4" "CHANGETHIS"
- "5" "CHANGETHIS"
- "6" "CHANGETHIS"
- "7" "CHANGETHIS"
- "0" "Back to Main Menu"
-  )
-
-  function menu_actions {
-    case $1 in
-      0) _define_menu;;
-      1) CHANGETHIS;;
-      2) CHANGETHIS;;
-      3) CHANGETHIS;;
-      4) CHANGETHIS;;
-      5) CHANGETHIS;;
-      6) CHANGETHIS;;
-      7) CHANGETHIS;;
-    esac
-  }
-}
-
-############# VUT ####################
-
-# running script...
+# RUN SCRIPT
 echo "***************************"
 echo "$MSG_WELCOME"
 # Get the list of functions in the script
