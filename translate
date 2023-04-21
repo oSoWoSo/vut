@@ -1,0 +1,451 @@
+#!/usr/bin/env bash
+#
+# MSG_ translator using deepl API
+# Copyright (c) 2023 darkmaster @grm34
+# Added functions by zenobit from oSoWoSo @zenobit @osowoso @zen0bit
+#
+
+# shellcheck source=/dev/null
+if [[ -f "lang/${LANGUAGE}.cfg" ]]; then
+    source "lang/${LANGUAGE}.cfg"
+elif [[ -f "lang/${LANG:0:5}.cfg" ]]; then
+    source "lang/${LANG:0:5}.cfg"
+elif [[ -f "lang/${LANG:0:2}.cfg" ]]; then
+    source "lang/${LANG:0:2}.cfg"
+else
+    source "lang/en.cfg"
+fi
+
+locales="bg cs da de el es et fi fr hu id it ja ko lt lv nb nl pl pt ro ru sk sl sv tr uk zh"
+
+_1st_run() {
+    if [[ -z "$1" ]]; then
+        echo "You must provide file with full path as argument!"
+        _input_file_and_path_ask
+        _input_file_and_path
+    else
+        input_file_with_path="$1"
+        _input_file_and_path
+    fi
+}
+
+_set_key() {
+    # shellcheck disable=SC2162
+    read -p "Enter your deepl API key: " api_key
+    echo "$api_key" > "$HOME/.config/deepl-key"
+    echo "API key saved to $HOME/.config/deepl-key"
+}
+
+_input_file_and_path_ask() {
+    echo "Enter the file path now:"
+    read -r input_file_with_path
+}
+
+_input_file_and_path() {
+    if [ -f "$input_file_with_path" ]; then
+        input_file=$(basename "$input_file_with_path")
+        input_path=$(dirname "$input_file_with_path")
+        tmp_dir="$input_path/lang/tmp"
+    else
+        echo "Please enter a valid file path."
+    fi
+}
+
+_extract_strings_msg() {
+    msg_lines=$(grep -n -o "MSG_[A-Za-z0-9_]*" "$input_file_with_path" | awk -F ":" '{print $1 ":" $2}')
+    echo "$msg_lines" > "$tmp_dir"/raw_msg.tmp
+}
+
+_extract_strings_echo() {
+    msg_lines=$(grep -n 'echo ' "$input_file_with_path" | awk -F ":" '{print $1 ":" $2}')
+    echo "$msg_lines" > "$tmp_dir"/raw_echo.tmp
+}
+
+_extract_strings_printf() {
+    msg_lines=$(grep -n 'printf ' "$input_file_with_path" | awk -F ":" '{print $1 ":" $2}')
+    echo "$msg_lines" > "$tmp_dir"/raw_printf.tmp
+}
+
+_extract_strings_comments() {
+    msg_lines=$(grep -n '#' "$input_file_with_path" | awk -F ":" '{print $1 ":" $2}')
+    echo "$msg_lines" > "$tmp_dir"/raw_comm.tmp
+}
+
+_extract_strings_without_msg() {
+    grep -v 'MSG' "$tmp_dir"/raw_echo.tmp | grep 'echo' > "$tmp_dir"/w_echo.tmp
+    grep -v 'MSG' "$tmp_dir"/raw_printf.tmp | grep 'printf' > "$tmp_dir"/w_printf.tmp
+    grep -v 'MSG' "$tmp_dir"/raw_comm.tmp | grep '#' > "$tmp_dir"/w_comm.tmp
+}
+
+_extract_strings_msg_unique() {
+    grep -o 'MSG_[A-Za-z0-9_]*' "$tmp_dir"/raw_msg.tmp | sort | uniq > "$tmp_dir"/uniq_msg.tmp
+    grep -o 'MSG_[A-Za-z0-9_]*' "$tmp_dir"/raw_echo.tmp | sort | uniq > "$tmp_dir"/uniq_msg_echo.tmp
+    grep -o 'MSG_[A-Za-z0-9_]*' "$tmp_dir"/raw_printf.tmp | sort | uniq > "$tmp_dir"/uniq_msg_printf.tmp
+    grep -o 'MSG_[A-Za-z0-9_]*' "$tmp_dir"/raw_comm.tmp | sort | uniq > "$tmp_dir"/uniq_msg_comm.tmp
+    grep -o 'MSG_[A-Za-z0-9_]*' "$tmp_dir"/strings.cfg | sort | uniq > "$tmp_dir"/uniq_msg_strings.tmp
+}
+
+_extract_all_strings() {
+    _cleanup_tmp_dir
+    _extract_strings_msg
+    _extract_strings_echo
+    _extract_strings_printf
+    _extract_strings_comments
+    _extract_strings_without_msg
+    _get_strings
+    _clean_string "$tmp_dir"/strings-nl.tmp
+    sed -i 's/$/=""/' "$tmp_dir"/strings.cfg
+    _get_strings_from_cfg "$tmp_dir"/strings.cfg
+    _extract_strings_msg_unique
+    _count_all
+}
+
+_count_all() {
+    _count_msg_variables_in_script
+#   _count_msg_all
+#   _count_msg_unique
+    _count_msg_new
+    _count_msg_source
+    _count_msg_tmp
+}
+
+_count_msg_variables_in_script() {
+    lines=$(grep -c 'MSG_[a-zA-Z0-9_]*=' "$input_file_with_path")
+    echo "lines_in_$input_file"="$lines" > "$tmp_dir"/counts.tmp
+}
+
+_count_lines_translated() {
+    local file_count=0
+    local prev_count=0
+    local current_count=0
+    for file in "$input_path/lang/"*.cfg; do
+        current_count=$(wc -l < "$file")
+        if [[ $file_count -ne 0 && $prev_count -ne $current_count ]]; then
+            echo "Count not match!"
+            return 1
+        fi
+        prev_count=$current_count
+        file_count=$((file_count+1))
+    done
+    strings_old="$current_count"
+    echo "strings_old=$current_count" >> "$tmp_dir"/counts.tmp
+    return 0
+}
+
+_count_msg_new() {
+    count=$(cat "$tmp_dir/strings.cfg" | wc -l)
+    counted_new_strings="$count"
+    echo "counted_new_strings=$count" >> "$tmp_dir"/counts.tmp
+}
+
+_count_msg_source() {
+    count=$(grep -c 'MSG_[a-zA-Z0-9_]*=' "$input_file_with_path")
+    counted_source="$count"
+}
+
+_count_msg_echo() {
+    count=$(cat "$tmp_dir/strings.cfg" | wc -l)
+    counted_msg_echo="$count"
+}
+
+_count_msg_printf() {
+    count=$(cat "$tmp_dir/strings.cfg" | wc -l)
+    counted_msg_printf="$count"
+}
+
+_count_msg_comments() {
+    count=$(cat "$tmp_dir/strings.cfg" | wc -l)
+    counted_msg_comments="$count"
+}
+
+_count_msg_tmp() {
+    for file in "$tmp_dir"/*.tmp; do
+        count=$(cat "$file" | wc -l)
+        filename=$(basename "$file")
+        filename_without_ext=${filename%.*}
+        echo "${filename_without_ext}=${count}" >> "$tmp_dir"/counts.tmp
+        eval "${filename_without_ext}=${count}"
+    done
+}
+
+_diff_raw_msg_and_strings() {
+    diff -s "$tmp_dir"/MSG_variables1.tmp "$tmp_dir"/MSG_variables2.tmp
+}
+
+_cleanup_tmp_dir() {
+    rm "$tmp_dir"/*
+}
+
+_create_empty_translations() {
+    mkdir -p "$input_path"/lang
+    mkdir -p "$tmp_dir"
+    mv "$input_path"/lang/*.cfg "$tmp_dir"/
+    cp "$tmp_dir"/en.cfg "$input_path"/lang/
+    for name in ${locales}; do
+        touch "$input_path"/lang/"$name".cfg
+    done
+}
+
+_get_strings() {
+    cut -d'$' -f2-9 < "$tmp_dir"/raw_msg.tmp > "$tmp_dir"/strings_wl.tmp
+    # shellcheck disable=SC2002
+    cat "$tmp_dir"/raw_msg.tmp | cut -d'$' -f2-9 | cut -d'$' -f2-9 | cut -d'$' -f2-9 | cut -d':' -f2-9 < "$tmp_dir"/strings_wl.tmp > "$tmp_dir"/strings_nl.tmp
+}
+
+_clean_string_file() {
+    # RM duplicates lines and sorts them alphabetically.
+    # Usage: _clean_cfg_files "$@" (array of files)
+    local file
+    for file in "$@"; do
+        mapfile -t strings < "$file"
+        _sort_strings "${strings[@]}"
+        printf "%s\n" "${sorted_strings[@]}" > "$tmp_dir"/strings.cfg
+    done
+}
+
+_clean_string() {
+    # RM duplicates lines and sorts them alphabetically.
+    # Usage: _clean_cfg_files "$@" (array of files)
+    local file
+    for file in "$@"; do
+        mapfile -t strings < "$file"
+        _sort_strings "${strings[@]}"
+        printf "%s\n" "${sorted_strings[@]}" > "$tmp_dir"/"$file"
+    done
+}
+
+_clean_cfg_files() {
+    # RM duplicates lines and sorts them alphabetically.
+    # Usage: _clean_cfg_files "$@" (array of files)
+    local file
+    for file in "$@"; do
+        mapfile -t strings < "$file"
+        _sort_strings "${strings[@]}"
+        printf "%s\n" "${sorted_strings[@]}" > "$file"
+    done
+}
+
+_clean_cfg_files() {
+    # RM duplicates lines and sorts them alphabetically.
+    # Usage: _clean_cfg_files "$@" (array of files)
+    local file
+    for file in "$@"; do
+        mapfile -t strings < "$file"
+        _sort_strings "${strings[@]}"
+        printf "%s\n" "${sorted_strings[@]}" > "$file"
+    done
+}
+
+_sort_strings() {
+    # RM duplicate strings from an array and sorts them alphabetically.
+    # Usage: _sort_strings "$@" (array of strings)
+    # Returns: $sorted_strings (array)
+    local string strings
+    declare -A strings
+    for string in "${@}"; do
+        [[ $string ]] && IFS=" " strings["${string:- }"]=1
+    done
+    # shellcheck disable=SC2207
+    IFS=$'\n' sorted_strings=($(sort <<< "${!strings[*]}"))
+}
+
+_get_strings_from_cfg() {
+    # Grabs strings from CFG files.
+    # Usage: _get_strings_from_cfg "$@" (array of files)
+    # Returns: $<language_code>_strings $cfg_list (arrays)
+    local file name
+    for file in "$@"; do
+        name=${file##*/}; name="${name/.cfg/_strings}"
+        mapfile -t "$name" < "$file"
+        [[ $name != en_strings ]] && cfg_list+=("$name")
+    done
+}
+
+_get_string_data() {
+    # Grabs string name and string value
+    # Returns: $data (array)
+    IFS=$'\n' read -d "" -ra data <<< "${1//=/$'\n'}"
+    data[1]=${data[1]//\"}
+}
+
+_deepl_translate_string() {
+    # Usage: _deepl_translate_string "string" "language code"
+    # Returns: $translated (string)
+    translated="$(curl -s https://api-free.deepl.com/v2/translate \
+    -d auth_key="$api_key" \
+    -d "text=$1" -d "target_lang=${2^^}" \
+    | grep -o '"text":"[^"]*' | grep -o '[^"]*$')"
+}
+
+_translate_and_add_missing_strings_into_cfg() {
+    # Translates then write missing strings from base language
+    # into the various translation files (from $cfg_list).
+    local line language trad_strings
+    for line in "${en_strings[@]:?}"; do
+        _get_string_data "$line"
+        for language in "${cfg_list[@]}"; do
+            declare -n trad_strings="$language"
+            if [[ "${trad_strings[*]}" != *"${data[0]}="* ]]; then
+                _deepl_translate_string "${data[1]}" "${language/_strings}"
+                [[ -n $translated ]] && line="${data[0]}=\"${translated}\""
+                [[ -n $translated ]] && note="translated" || note="original"
+                trad_strings+=("$line"); file="${language/_strings/.cfg}"
+                printf "%s\n" "${trad_strings[@]}" > "lang/$file"
+                echo "=> ${data[0]} (${note}) added into $file"
+            fi
+        done
+    done
+}
+
+_show_help() {
+    echo "Translate strings thanks to deepl"
+    echo "Translating: $input_file Strings: $strings_old"
+    echo "----------------------
+$(cat "$tmp_dir"/counts.tmp)
+----------------------"
+    echo "
+    Unique/All strings: $counted_new_strings/$raw_msg
+    New strings: $counted_new_strings
+     Translated: $strings_old
+    ------
+    echo/msg: $raw_echo/$uniq_msg_echo
+    printf/msg: $raw_printf/$uniq_msg_printf
+    comments/msg: $raw_comm/$uniq_msg_comm
+
+    "
+    api_key=$(cat "$HOME/.config/deepl-key" >/dev/null 2>&1 ) || echo "No API key!"
+}
+
+_show_gui() {
+    echo "Work in progress. Not working yet!"
+    selected_option=$(yad --width=300 --title "Select a function" \
+    --button=gtk-ok:0 \
+    --button=gtk-close:1 \
+    --button=gtk-cancel:1 \
+    --list \
+    --column="Options" "${options[@]}")
+    case $selected_option in
+    "${options[1]}")
+        extract_all_strings
+        ;;
+    "${options[4]}")
+        create_empty_translations
+        ;;
+    "${options[5]}")
+        compare_printf_msg_echo_strings
+        ;;
+    "${options[6]}")
+        compare_old_and_new_strings
+        ;;
+    "${options[7]}")
+        get_strings
+        ;;
+    "${options[8]}")
+        clean_and_translate
+        ;;
+    "${options[9]}")
+        translate_and_add_missing_strings
+        ;;
+    "${options[0]}")
+        quit
+        ;;
+esac
+}
+
+_select_function() {
+    _count_all
+    _show_help
+    echo "Select a function to run:"
+    select opt in "${to_run[@]}"
+    do
+        case $opt in
+            "Enter file for translation")
+                _input_file_and_path_ask
+                _input_file_and_path
+                cd "$input_path" || exit 1
+                break
+                ;;
+            "Get strings")
+                _extract_all_strings "$input_file"
+                break
+                ;;
+            "Create empty translation files")
+                _create_empty_translations
+                break
+                ;;
+            "Compare printf > MSG < echo strings")
+                meld -a "$tmp_dir"/raw_printf.tmp "$tmp_dir"/raw_msg.tmp "$tmp_dir"/raw_echo.tmp
+                break
+                ;;
+            "Compare printf echo comments without MSG")
+                meld -a "$tmp_dir"/w_printf.tmp "$tmp_dir"/w_echo.tmp "$tmp_dir"/w_comm.tmp
+                break
+                ;;
+            "Compare old and new strings")
+                meld -a "$tmp_dir"/strings.cfg "$input_path"/lang/en.cfg
+                break
+                ;;
+            "Compare raw MSG and new strings")
+                meld -a "$tmp_dir"/raw_msg.tmp "$tmp_dir"/strings.cfg
+                break
+                ;;
+            "Diff raw MSG and new strings")
+                _diff_raw_msg_and_strings
+                break
+                ;;
+            "Compare raw MSG and original script")
+                meld "$tmp_dir"/raw_msg.tmp "$input_file"
+                break
+                ;;
+            "Translate")
+                _clean_cfg_files lang/*.cfg
+                _get_strings_from_cfg lang/*.cfg
+                time _translate_and_add_missing_strings_into_cfg
+                _clean_cfg_files lang/*.cfg
+                break
+                ;;
+            "Show GUI")
+                _show_gui
+                break
+                ;;
+            "Show help")
+                _show_help
+                break
+                ;;
+            "Set deepl API key")
+                _set_key
+                break
+                ;;
+            "Quit")
+                exit 0
+                ;;
+            *) echo "Invalid option";;
+        esac
+    done
+}
+
+_call_function() {
+    while true; do
+        _select_function
+    done
+}
+
+to_run=("Enter file for translation"
+ "Get strings"
+ "Create empty translation files"
+ "Compare printf > MSG < echo strings"
+ "Compare printf echo comments without MSG"
+ "Compare old and new strings"
+ "Compare raw MSG and new strings"
+ "Diff raw MSG and new strings"
+ "Compare raw MSG and original script"
+ "Translate"
+ "Show GUI"
+ "Show help"
+ "Set deepl API key"
+ "Quit")
+
+_1st_run "$1"
+_call_function
+
+#[[ $note ]] && echo "==> done" || echo "==> nothing to translate"
