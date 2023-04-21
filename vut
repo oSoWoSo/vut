@@ -42,9 +42,6 @@ EOF
     source "$config"
   fi
 }
-
-
-
 _config
 # shellcheck disable=SC2034
 _define_colors() {
@@ -61,8 +58,21 @@ _define_colors() {
   c="\[0;"
 }
 _define_colors
-# save posible arguments to filey
-function save_arguments {
+# HELP
+function help {
+  echo "#TODO"
+}
+function hlp_main {
+  echo "#TODO"
+}
+function hlp_src {
+  echo "#TODO"
+}
+function hlp_xbps {
+  echo "#TODO"
+}
+# ARGUMENTS
+_arguments_export() {
   # Get the list of functions in the script
   declare -F | while read line; do
       # Extract the function name
@@ -74,15 +84,30 @@ function save_arguments {
       fi
   done
 }
-# help
-function hlp_main {
-  echo "#TODO"
+_arguments_use() {
+  declare -F | while read line; do
+    # Extract the function name
+    func_name=$(echo "$line" | awk '{print $3}')
+    # Check if the function starts with the word "function"
+    if [[ $func_name == function* ]]; then
+      # Add a case branch for the function to the switch statement
+      case "$1" in
+        "${func_name/function /}")
+          # Execute the function
+          $func_name
+          exit 0
+          ;;
+      esac
+    fi
+  done
 }
-function hlp_src {
-  echo "#TODO"
+_arguments_if() {
+  if [ -n "$1" ]; then
+    "$1"
+  else
+    run_gui
+  fi
 }
-function hlp_xbps {
-  echo "#TODO"
 }
 # config
 function config_edit {
@@ -142,15 +167,16 @@ function list_arguments {
   echo "***************************"
   cat "$config_path/arguments"
 }
-function list_arguments2 {
-  # Get the list of functions in the script
-  functions=($(declare -F | awk '{print $NF}'))
-  # Print the names of the functions
-  for f in "${functions[@]}"; do
-    if [[ $f == function* ]]; then
-      echo "${f/function /}"
-    fi
-  done
+#function list_arguments2 {
+  ## Get the list of functions in the script
+  #functions=($(declare -F | awk '{print $NF}'))
+  ## Print the names of the functions
+  #for f in "${functions[@]}"; do
+    #if [[ $f == function* ]]; then
+      #echo "${f/function /}"
+    #fi
+  #done
+#}
 }
 # src menu
 function src_list_gen {
@@ -160,8 +186,8 @@ function list_templates {
   cd "$XBPS_DISTDIR" || exit 2
   find ./*/ | sed 's#/##'
 }
-#TODO
 function src_update {
+  echo "#TODO"
   vpsm upr && read -n 1 -s -p Press any key to continue
 }
 function src_new {
@@ -246,7 +272,7 @@ function repo_push {
   git push -u "$GIT_HOST_NAME" "$HEAD"
   read -p "Press Enter to continue"
 }
-# install menu
+# INSTALL MENU
 function get_api_key {
   read -p "Please enter your API key: " api_key
   export your_api_key=$api_key
