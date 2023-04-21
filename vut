@@ -766,29 +766,14 @@ function install_wm_openbox {
 }
 # RUN SCRIPT
 echo "***************************"
-echo "$MSG_WELCOME"
-# Get the list of functions in the script
-declare -F | while read line; do
-  # Extract the function name
-  func_name=$(echo "$line" | awk '{print $3}')
-  # Check if the function starts with the word "function"
-  if [[ $func_name == function* ]]; then
-    # Add a case branch for the function to the switch statement
-    case "$1" in
-      "${func_name/function /}")
-        # Execute the function
-        $func_name
-        exit 0
-        ;;
-    esac
-  fi
-done
-# run function if argument is specified
-if [ -n "$1" ]; then
-  "$1"
-else
-  _define_menu
-  _run_menu
-fi
+echo "$MSG_WELCOME Void Ultimate Tool:
+Support a lot of functions!
+try run 'vut help' or 'vut list_arguments'"
 echo "***************************"
-echo "$MSG_GOODBYE"
+_arguments_export
+_arguments_use
+_arguments_if
+echo "***************************"
+echo "$MSG_GOODBYE
+ If you found some bugs please, let me know!
+                                zenobit"
