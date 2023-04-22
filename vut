@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090,SC1091,SC2154,SC2162
 
-config_path="$HOME/.config/vut"
-config="$HOME/.config/vut/vut.conf"
+# INTERNAL FUNCTIONS
+# 
 _config() {
+  config_path=$HOME/.config/vut
+  config=$HOME/.config/vut/vut.conf
   if [ ! -e "$config" ]; then
     mkdir -p "$config_path" && cat <<EOF > vut.conf
 # Void Ultimate Tool config v.0.1
@@ -21,13 +23,13 @@ email="zen@osowoso.xyz"
 # your user name (for comitting)
 name="zenobit"
 # default browser: any
-BROWSER="lynx"
+BROWSER="firefox"
 # for color support
 TERM=xterm-256color
 # default terminal emulator: any (but using -e for opening in new windows)
-TERMINAL=sakura
+TERMINAL=xterm
 # default editor: any
-EDITOR="geany"
+EDITOR="nano"
 # commit message using "oc" or "" for git commit
 message_using="oc"
 # DEBUGING : "clear" or "" to not clear
@@ -35,14 +37,13 @@ clear_yes="clear"
 # výstup do externího terminálu, nebo na standardního výstup "/dev/tty"
 output_to="/dev/stdout"
 EOF
-    echo "$MSG_config_created_sourcing"
-    source "$config"
+    echo "$MSG_config_created_sourcing Config created, sourcing.."
   else
-    echo "$MSG_config_exists_sourcing"
-    source "$config"
+    echo "$MSG_config_exists_sourcing Config exists, sourcing.."
   fi
+  # shellcheck source=./vut.conf
+  source "$config"
 }
-_config
 # shellcheck disable=SC2034
 _define_colors() {
   cr="\033[0;31m"
@@ -57,62 +58,59 @@ _define_colors() {
   cc="\033[0m"
   c="\[0;"
 }
-_define_colors
-# HELP
-function help {
-  echo "#TODO"
+_exterm_open() {
+  $TERMINAL -e "$cmd" &
 }
-function hlp_main {
-  echo "#TODO"
-}
-function hlp_src {
-  echo "#TODO"
-}
-function hlp_xbps {
-  echo "#TODO"
-}
-# ARGUMENTS
-_arguments_export() {
-  # Get the list of functions in the script
-  declare -F | while read line; do
-      # Extract the function name
-      func_name=$(echo "$line" | awk '{print $3}')
-      # Check if the function starts with the word "function"
-      if [[ $func_name == function* ]]; then
-          # Write the function name to the "arguments" file
-          echo "${func_name/function /}" > "$config_path/arguments"
-      fi
-  done
+# arguments
+_arguments_get() {
+  while read -r line; do
+    if [[ $line =~ ^\ *function\ +([^[:space:]]+) ]]; then
+      echo "${BASH_REMATCH[1]}"
+    fi
+  done < "$0" | sort -u
 }
 _arguments_use() {
-  declare -F | while read line; do
-    # Extract the function name
-    func_name=$(echo "$line" | awk '{print $3}')
-    # Check if the function starts with the word "function"
-    if [[ $func_name == function* ]]; then
-      # Add a case branch for the function to the switch statement
-      case "$1" in
-        "${func_name/function /}")
-          # Execute the function
-          $func_name
-          exit 0
-          ;;
-      esac
+  function_list=$(_arguments_get)
+  for func_name in $function_list; do
+    if [[ $func_name == "$1" ]]; then
+      # Execute the function
+      $func_name
+      exit 0
+    fi
+  done
+  run_gui
+}
+_arguments_export() {
+  echo "$function_list" > "$config_path/arguments"
+  export function_list
+}
+_install_get() {
+  IFS=$'\n' sorted_install_functions=($(grep -E '^function install_' $0 | awk '{print $2}' | sort -u | awk NF))
+  unset IFS
+  printf '%s\n' "${sorted_install_functions[@]}"
+}
+# menu
+_run_list() {
+  while :
+  do
+    list --width 200 --height 500 "${menu_items[@]}"
+    answer="${?}"
+    if [ ${answer} -eq 0 ]
+    then
+    menu_choice="$( 0< "${dir_tmp}/${file_tmp}" )"
+    menu_actions $menu_choice
+    elif [ ${answer} -eq 1 ]
+    then
+    break
+    else
+    exit
     fi
   done
 }
-_arguments_if() {
-  if [ -n "$1" ]; then
-    "$1"
-  else
-    run_gui
-  fi
-}
-# MENU
 _run_menu() {
   while :
   do
-    tagged_menu  --width 200 --height 500 "${menu_items[@]}"
+    tagged_menu --width 200 --height 500 "${menu_items[@]}"
     answer="${?}"
     if [ ${answer} -eq 0 ]
     then
@@ -146,17 +144,63 @@ _define_menu() {
   function menu_actions {
     case $1 in
       1) _define_menu_src;;
-      2) fuzzypkg;;
+      2) cmd=fuzzypkg; _exterm_open;;
       3) _define_menu_xbps;;
       4) sudo xbps-install -Suv;;
-      5) topgrade;;
       6) btop;;
+      5) cmd=topgrade; _exterm_open;;
       7) manage_services;;
       8) _define_menu_tools;; 
       9) list_arguments;;
       10) config_edit;;
-      11) install__essentials;;
+      11) _define_list_essen;;
       12) install__void;;
+    esac
+  }
+}
+_define_list_essen() {
+  echo "$MSG_define_menu_essential"
+  menu_items=(
+ "1" "install Ansible"
+ "2" "install Connman"
+ "3" "install Distrohopper"
+ "4" "install Gparted"
+ "5" "install Chezmoi"
+ "6" "install Lutris"
+ "7" "install Ngetty"
+ "8" "install Opencommit"
+ "9" "install Pipewire"
+ "10" "install Quickemu"
+ "11" "install Steam"
+ "12" "install VirtManager"
+ "13" "install Wine"
+ "14" "install Awesome WM"
+ "15" "install Bspwm WM"
+ "16" "install Openbox WM"
+ "17" "install Xxtools"
+ "18" "Back to Main Menu"
+  )
+
+  function menu_actions {
+    case $1 in
+      18) _define_menu;;
+      1) install_ansible;;
+      2) install_connman;;
+      3) install_distrohopper;;
+      4) install_gparted;;
+      5) install_chezmoi;;
+      6) install_lutris;;
+      7) install_ngetty;;
+      8) install_opencommit;;
+      9) install_pipewire;;
+      10) install_quickemu;;
+      11) install_steam;;
+      12) install_virtmanager;;
+      13) install_wine;;
+      14) install_wm_awesome;;
+      15) install_wm_bspwm;;
+      16) install_wm_openbox;;
+      17) install_xxtools;;
     esac
   }
 }
@@ -183,7 +227,7 @@ _define_menu_src() {
 
   function menu_actions {
     case $1 in
-      0) _define_menu;;
+      16) _define_menu;;
       1) src_new;;
       2) src_choose;;
       3) src_repology;;
@@ -202,11 +246,27 @@ _define_menu_src() {
     esac
   }
 }
+_define_menu_tools() {
+  echo "$MSG_define_menu_tools"
+  menu_items=(
+ "1" "translate"
+ "2" "lazygit"
+ "3" "Back to Main Menu"
+  )
+
+  function menu_actions {
+    case $1 in
+      3) _define_menu;;
+      1) cmd=./translate; _exterm_open;;
+      2) cmd=lazygit; _exterm_open;;
+    esac
+  }
+}
 _define_menu_xbps() {
   echo "$MSG_define_menu_xbps"
   menu_items=(
- "1" ""
- "2" ""
+ "1" "Install package"
+ "2" "Remove package"
  "3" ""
  "4" ""
  "5" ""
@@ -227,7 +287,7 @@ _define_menu_xbps() {
     esac
   }
 }
-#### template for future menus ####
+# menu template
 _define_menu_CHANGETHIS() {
   echo "$MSG_CHANGETHIS"
   menu_items=(
@@ -254,7 +314,20 @@ _define_menu_CHANGETHIS() {
     esac
   }
 }
-# menu modes
+### HELP
+function help {
+  echo "#TODO"
+}
+function help_main {
+  echo "#TODO"
+}
+function help_src {
+  echo "#TODO"
+}
+function help_xbps {
+  echo "#TODO"
+}
+# MENU - modes
 function run_gui {
   unset supermode
   source easybashgui
@@ -305,8 +378,15 @@ function run_tui {
 }
 ### FUNCTIONS (SORTED BY MENUS)
 # MAIN MENU
+function system_monitor {
+  echo "#TODO"
+  cmd=btop
+  _exterm_open
+}
 function config_edit {
-  $EDITOR $config
+  cmd="$EDITOR $config"
+  _exterm_open
+  source $config
 }
 function config_edit_vars {
   "$clear_yes" >/dev/null 2>&1
@@ -349,31 +429,17 @@ function config_edit_vars {
     esac
   done
 }
-function get_arguments {
-  cat vut | grep --extended-regexp "function * " | uniq | cut -d' ' -f2 > "$config_path/arguments"
-  sed -i '/^$/d' "$config_path/arguments"
-}
 function list_arguments {
-  get_arguments
-  echo "args"
+  echo "Posible arguments are:"
   echo "***************************"
-  cat "$config_path/arguments"
+  _arguments_get
+  echo "***************************"
 }
-#function list_arguments2 {
-  ## Get the list of functions in the script
-  #functions=($(declare -F | awk '{print $NF}'))
-  ## Print the names of the functions
-  #for f in "${functions[@]}"; do
-    #if [[ $f == function* ]]; then
-      #echo "${f/function /}"
-    #fi
-  #done
-#}
 function manage_services {
   echo "#TODO"
   sudo vsv
 }
-# SRC MENU
+### SRC MENU
 function src_list_gen {
   ls srcpkgs/ > "$config_path/list"
 }
@@ -383,7 +449,7 @@ function list_templates {
 }
 function src_update {
   echo "#TODO"
-  vpsm upr && read -n 1 -s -p Press any key to continue
+  vpsm upr
 }
 function src_new {
   src_enter
@@ -434,7 +500,8 @@ function src_checksum {
 }
 function src_edit {
   #vpsm et "$template"
-  $EDITOR srcpkgs/$template/template
+  cmd="$EDITOR srcpkgs/$template/template"
+  _exterm_open
 }
 function src_build {
   vpsm pkg "$template"
@@ -468,7 +535,7 @@ function repo_push {
   git push -u "$GIT_HOST_NAME" "$HEAD"
   read -p "Press Enter to continue"
 }
-# INSTALL MENU
+### INSTALL MENU
 function get_api_key {
   read -p "Please enter your API key: " api_key
   export your_api_key=$api_key
@@ -774,15 +841,16 @@ function install_wm_openbox {
   sudo xbps-install jgmenu lxappearance obconf obmenu-generator openbox tint2conf
   obmenu-generator -p -i -u -d -c
 }
-# RUN SCRIPT
+### RUN SCRIPT
 echo "***************************"
 echo "$MSG_WELCOME Void Ultimate Tool:
 Support a lot of functions!
 try run 'vut help' or 'vut list_arguments'"
 echo "***************************"
+_define_colors
+_config
+_arguments_use "$1"
 _arguments_export
-_arguments_use
-_arguments_if
 echo "***************************"
 echo "$MSG_GOODBYE
  If you found some bugs please, let me know!
