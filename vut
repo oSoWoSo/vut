@@ -93,7 +93,7 @@ _install_get() {
 _run_list() {
   while :
   do
-    list --width 200 --height 500 "${menu_items[@]}"
+    list --width 200 --height 600 "${menu_items[@]}"
     answer="${?}"
     if [ ${answer} -eq 0 ]
     then
@@ -147,60 +147,60 @@ _define_menu() {
       2) cmd=fuzzypkg; _exterm_open;;
       3) _define_menu_xbps;;
       4) sudo xbps-install -Suv;;
-      6) btop;;
       5) cmd=topgrade; _exterm_open;;
+      6) system_monitor;;
       7) manage_services;;
       8) _define_menu_tools;; 
       9) list_arguments;;
       10) config_edit;;
-      11) _define_list_essen;;
-      12) install__void;;
+      11) _define_list_essen;_run_list;;
+      12) install_v_void;;
     esac
   }
 }
 _define_list_essen() {
   echo "$MSG_define_menu_essential"
   menu_items=(
- "1" "install Ansible"
- "2" "install Connman"
- "3" "install Distrohopper"
- "4" "install Gparted"
- "5" "install Chezmoi"
- "6" "install Lutris"
- "7" "install Ngetty"
- "8" "install Opencommit"
- "9" "install Pipewire"
- "10" "install Quickemu"
- "11" "install Steam"
- "12" "install VirtManager"
- "13" "install Wine"
- "14" "install Awesome WM"
- "15" "install Bspwm WM"
- "16" "install Openbox WM"
- "17" "install Xxtools"
- "18" "Back to Main Menu"
+ "ansible"
+ "connman"
+ "distrohopper"
+ "gparted"
+ "chezmoi"
+ "lutris"
+ "ngetty"
+ "opencommit"
+ "pipewire"
+ "quickemu"
+ "steam"
+ "virtmanager"
+ "wine"
+ 'WM awesome'
+ 'WM bspwm'
+ 'WM openbox'
+ "xxtools"
+ 'Back..'
   )
 
   function menu_actions {
     case $1 in
-      18) _define_menu;;
-      1) install_ansible;;
-      2) install_connman;;
-      3) install_distrohopper;;
-      4) install_gparted;;
-      5) install_chezmoi;;
-      6) install_lutris;;
-      7) install_ngetty;;
-      8) install_opencommit;;
-      9) install_pipewire;;
-      10) install_quickemu;;
-      11) install_steam;;
-      12) install_virtmanager;;
-      13) install_wine;;
-      14) install_wm_awesome;;
-      15) install_wm_bspwm;;
-      16) install_wm_openbox;;
-      17) install_xxtools;;
+      'Back..') _define_menu;_run_menu;;
+      ansible) install_ansible;;
+      connman) install_connman;;
+      distrohopper) install_distrohopper;;
+      gparted) install_gparted;;
+      chezmoi) install_chezmoi;;
+      lutris) install_lutris;;
+      ngetty) install_ngetty;;
+      opencommit) install_opencommit;;
+      pipewire) install_pipewire;;
+      quickemu) install_quickemu;;
+      steam) install_steam;;
+      virtmanager) install_virtmanager;;
+      wine) install_wine;;
+      'WM awesome') install_wm_awesome;;
+      'WM bspwm') install_wm_bspwm;;
+      'WM openbox') install_wm_openbox;;
+      xxtools) install_xxtools;;
     esac
   }
 }
@@ -313,6 +313,48 @@ _define_menu_CHANGETHIS() {
       7) CHANGETHIS;;
     esac
   }
+}
+_define_submenu_tools() {
+{ 
+    name="tools"
+    items=(
+'translate'
+'lazygit'
+'Back to main menu'
+)
+    actions=(
+'_define_menu;;'
+'cmd=./translate; _exterm_open;;'
+'cmd=lazygit
+_exterm_open
+;;'
+)
+    local submenu_name=$(echo "$1" | sed 's/ /_/g');
+    echo "$MSG_define_submenu_$submenu_name Defining submenu: $1...";
+    menu_items=();
+    i=1;
+    for item in "${items[@]}";
+    do
+        menu_items+=("$i" "$item");
+        ((i++));
+    done;
+    menu_items+=("$i" "Back to Main Menu");
+    function menu_actions () 
+    { 
+        case $1 in 
+            ${#items[@]})
+                _define_menu
+            ;;
+            *)
+                cmd="${items[$(( $1 - 1 ))]}";
+                _exterm_open
+            ;;
+        esac
+    };
+    echo '_define_submenu_'"$submenu_name"'() {' > "$submenu_name.sh";
+    declare -f _define_submenu | tail -n +2 >> "$submenu_name.sh";
+    echo '}' >> "$submenu_name.sh"
+}
 }
 ### HELP
 function help {
@@ -535,22 +577,22 @@ function repo_push {
   git push -u "$GIT_HOST_NAME" "$HEAD"
   read -p "Press Enter to continue"
 }
-### INSTALL MENU
 function get_api_key {
   read -p "Please enter your API key: " api_key
   export your_api_key=$api_key
   echo "API key saved as your_api_key=$api_key"
 }
-function install__vut {
+### INSTALL MENU
+function install_v_vut {
   echo "#TODO"
 }
-function install__void {
+function install_v_void {
   echo "#TODO"
 }
-function install__drivers_nvidia {
+function install_v_drivers_nvidia {
   sudo xbps-install dkms nvidia nvtop pkg-config
 }
-function install__essentials {
+function install_essentials {
   echo "#TODO"
 }
 function install_ansible {
@@ -618,7 +660,7 @@ function install_chezmoi {
   git init
   git add .
 }
-function install_distrohopper {
+function install_v_distrohopper {
   echo"#TODO"
   git clone https://github.com/oSoWoSo/distrohopper ~/git/dh
 }
