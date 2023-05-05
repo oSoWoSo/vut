@@ -179,8 +179,8 @@ _cleanup_tmp_dir() {
 _create_empty_translations() {
     mkdir -p "$input_path"/lang
     mkdir -p "$tmp_dir"
-    mv "$input_path"/lang/*.cfg "$tmp_dir"/
-    cp "$tmp_dir"/en.cfg "$input_path"/lang/
+    cp "$input_path"/lang/*.cfg "$tmp_dir"/
+    #cp "$tmp_dir"/en.cfg "$input_path"/lang/
     for name in ${locales}; do
         touch "$input_path"/lang/"$name".cfg
     done

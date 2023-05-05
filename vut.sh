@@ -1,16 +1,28 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2162,SC2317
 
-mkdir -p "$HOME/.config/vut"
-touch "$HOME/.config/vut/vut.conf"
-# real path
-config_path="$HOME/.config/vut"
-config="$HOME/.config/vut/vut.conf"
-# testing path (same dir)
-#config_path=""
-#config="vut.conf"
-# shellcheck source=./vut.conf
-source "$config"
+# program name
+progname=${0##*/}
+version="0.23"
+# enable translation
+_enable_translation() {
+  if [[ -f "$HOME/.config/osowoso/${progname}/${LANGUAGE}.cfg" ]]; then
+    source "$HOME/.config/osowoso/${progname}/${LANGUAGE}.cfg"
+  elif [[ -f "$HOME/.config/osowoso/${progname}/${LANG:0:5}.cfg" ]]; then
+      source "$HOME/.config/osowoso/${progname}/${LANG:0:5}.cfg"
+  elif [[ -f "$HOME/.config/osowoso/${progname}/${LANG:0:2}.cfg" ]]; then
+    source "$HOME/.config/osowoso/${progname}/${LANG:0:2}.cfg"
+  else
+    source "$HOME/.config/osowoso/${progname}/en.cfg"
+  fi
+}
+
+_create_config() {
+  config_path="$HOME/.config/osowoso/${progname}"
+  config="$HOME/.config/osowoso/${progname}/${progname}.conf"
+  mkdir -p "$config_path"
+  touch "$config"
+}
 
 _define_colors() {
   cr="\033[0;31m"
@@ -28,26 +40,38 @@ _define_colors() {
 
 _print_menu() {
   "$clear_yes" >/dev/null 2>&1
-  echo -e "$bold$header$cc"
-  echo -e "$bold$1$cc"
+  echo -e "${bold}${header}${cc}"
+  echo -e "${bold}${1}${cc}"
   shift
   for ((i=1; i<=$#; i++)); do
-    echo -e "$clc$i.$cc $bold${!i}$cc"
+    echo -e "${clc}$i.${cc} ${bold}${!i}${cc}"
   done
-  echo -e "$cb 0. Help$cc"
-  echo -e "$cr$menu_up$cc"
+  echo -e "${clc}0.${cc}  Help${cc}"
+  echo -e "${cr}${menu_up}${cc}"
+}
+
+_print_header() {
+  HEADER_BUBBLE=$(gum style --height 5 --width 25 --padding '1 3' --border double --border-foreground 57 "Void Ultimate Tool version $version")
+  HELP_BUBBLE=$(gum style --width 25 --padding '1 3' --border double --border-foreground 212 "current dir $(gum style --foreground "#04B575" "Heeelp")")
+  gum join --horizontal "$HEADER_BUBBLE" "$HELP_BUBBLE"
+}
+
+_print_src_header() {
+  HEADER_BUBBLE=$(gum style --height 5 --width 25 --padding '1 3' --border double --border-foreground 57 "Tools to work with xbps-src Using:fzf git vpsm xtools xxtools")
+  HELP_BUBBLE=$(gum style --width 25 --padding '1 3' --border double --border-foreground 212 "XBPS_DISTDIR \n $XBPS_DISTDIR repo: $MY_XBPS_REPO $(git branch | grep '*') PR: $pr_number $(gum style --foreground "#04B575" "Heeelp")")
+  gum join --horizontal "$HEADER_BUBBLE" "$HELP_BUBBLE"
 }
 
 function hlp_main {
-  echo "#TODO"
+  "#TODO"
 }
 
 function hlp_src {
-  echo "#TODO"
+  "#TODO"
 }
 
 function hlp_xbps {
-  echo "#TODO"
+  "#TODO"
 }
 
 function config_edit {
@@ -95,6 +119,7 @@ function config_edit_vars {
     esac
   done
 }
+
 # listing available templates
 function list_templates {
   cd "$XBPS_DISTDIR" || exit 2
@@ -122,7 +147,7 @@ function src_list_gen {
 }
 # updating templates from git
 function src_update {
-  vpsm upr && read -n 1 -s -r -p Press any key to continue
+  vpsm upr && read -n 1 -s -r -p "Press any key to continue"
 }
 # create new template
 function src_new {
@@ -172,7 +197,7 @@ function src_pr_create {
 function create_repo_github {
   curl -H "$GITHUB_TOKEN" https://api.github.com/user/repos -d '{"name":"REPO"}'
   git init
-  git remote add origin git@github.com:"$USERNAME/$REPO.git"
+  git remote add origin git@github.com:"${USERNAME}/${REPO}.git"
 }
 # etnter number of guthub PR
 function src_pr_number {
@@ -209,7 +234,7 @@ function src_checksum {
 # dit template
 function src_edit {
   #vpsm et "$template"
-  "$TERMINAL" -e "$EDITOR srcpkgs/$template/template &"
+  "$TERMINAL" -e "$EDITOR srcpkgs/${template}/template &"
 
 }
 # downloading and building a template
@@ -233,7 +258,7 @@ function save_arguments {
         # Check if the function starts with the word "function"
         if [[ $func_name == function* ]]; then
             # Write the function name to the "arguments" file
-            echo "${func_name/function /}" > "$config_path/arguments"
+            echo "${func_name/function /}" > "${config_path}/arguments"
         fi
     done
 }
@@ -253,48 +278,54 @@ declare -F | while read line; do
     esac
   fi
 done
+
 # Main script
 _define_colors
+_enable_translation
+_create_config
+
+# shellcheck source=./vut.conf
+source "$config"
+
 while true; do
-  header="$cr Void Ultimate Tool"
+  header_box="Void Ultimate Tool"
+  help_box="$hlp_main"
   menu_up="00. Quit"
   menu_name="main"
+  _print_header
   _print_menu "main menu:" \
-    "$cg menu XBPS-SRC" \
-    "$cg menu PACKAGES" \
-    "$cy Update xbps" \
-    "$cy Update all" \
-    "$cyan List possible arguments" \
-    "$cyan Edit config file" \
-    "$cc Install essential programs"
+    "${cg} menu XBPS-SRC" \
+    "${cg} menu PACKAGES" \
+    "${cy} Update xbps" \
+    "${cy} Update all" \
+    "${cyan} List possible arguments" \
+    "${cyan} Edit config file" \
+    "${cc} Install essential programs"
   read -p "Select an operation (00 0-7): " main_choice
   case "$main_choice" in
     1)
       while true; do
-        header="Tools to work with xbps-src
-Using:fzf git vpsm xtools xxtools
-XBPS_DISTDIR=$XBPS_DISTDIR
-repo: $MY_XBPS_REPO $(git branch | grep '*')
-PR: $pr_number"
+        help_box="hello"
         menu_up="00. Back"
         menu_name="src"
+        _print_src_header
         _print_menu "~" \
-          "$cr Create template" \
-          "$cr Choose template" \
-          "$cy$template$cc on repology" \
-          "autobump $cg$template$clc" \
-          "edit $cg$template$cc" \
-          "checksum $cg$template$clc" \
-          "lint $cg$template$clc" \
-          "build $cg$template$clc" \
-          "install $cg$template$clc" \
-          "$cc Update$clc" \
-          "$cc Clean $cg$template$clc" \
-          "$cg$template$cc PR check" \
-          "$cg$template$cc create PR" \
-          "$cg$template$cc push" \
+          "${cr} Create template" \
+          "${cr} Choose template" \
+          "${cy}${template}${cc} on repology" \
+          "autobump ${cg}${template}${clc}" \
+          "edit ${cg}${template}${cc}" \
+          "checksum ${cg}${template}${clc}" \
+          "lint ${cg}${template}${clc}" \
+          "build ${cg}${template}${clc}" \
+          "install ${cg}${template}${clc}" \
+          "${cc} Update${clc}" \
+          "${cc} Clean ${cg}${template}${clc}" \
+          "${cg}${template}${cc} PR check" \
+          "${cg}${template}${cc} create PR" \
+          "${cg}${template}${cc} push" \
           "generate list of current templates" \
-          "$cc open template$cc homepage"
+          "${cc} open template${cc} homepage"
         read -p "Select an operation (00 0-16): " template_choice
         case "$template_choice" in
           1)
@@ -308,26 +339,21 @@ PR: $pr_number"
             ;;
           4)
             src_bump
-            read -p "Press Enter to continue"
             ;;
           5)
             src_edit
             ;;
           6)
             src_checksum
-            read -p "Press Enter to continue"
             ;;
           7)
             src_lint
-            read -p "Press Enter to continue"
             ;;
           8)
             src_build
-            read -p "Press Enter to continue"
             ;;
           9)
             src_install
-            read -p "Press Enter to continue"
             ;;
           10)
             src_update
@@ -377,11 +403,9 @@ PR: $pr_number"
         case "$package_choice" in
           1)
             install_package
-            read -p "Press Enter to continue"
             ;;
           2)
             remove_package
-            read -p "Press Enter to continue"
             ;;
           0)
             hlp_xbps
@@ -391,7 +415,6 @@ PR: $pr_number"
             ;;
           *)
             echo "Invalid selection, please try again."
-            read -p "Press Enter to continue"
             ;;
         esac
       done
