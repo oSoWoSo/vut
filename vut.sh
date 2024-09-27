@@ -3,10 +3,11 @@
 
 # program name
 progname=${0##*/}
-version="0.23"
+version="0.23b"
+
 # enable translation
 _enable_translation() {
-  if [[ -f "$HOME/.config/osowoso/${progname}/${LANGUAGE}.cfg" ]]; then
+  if [[ -f "$HOME/.config/osowoso/ ${progname}/${LANGUAGE}.cfg" ]]; then
     source "$HOME/.config/osowoso/${progname}/${LANGUAGE}.cfg"
   elif [[ -f "$HOME/.config/osowoso/${progname}/${LANG:0:5}.cfg" ]]; then
       source "$HOME/.config/osowoso/${progname}/${LANG:0:5}.cfg"
@@ -125,6 +126,7 @@ function list_templates {
   cd "$XBPS_DISTDIR" || exit 2
   find ./*/ | sed 's#/##'
 }
+
 # list available arguments
 function list_arguments {
   cat "$config_path/arguments"
@@ -145,42 +147,48 @@ function list_arguments2 {
 function src_list_gen {
   ls srcpkgs/ > "$config_path/list"
 }
+
 # updating templates from git
 function src_update {
   vpsm upr && read -n 1 -s -r -p "Press any key to continue"
 }
+
 # create new template
 function src_new {
-  src_enter
   new="yes"
   read -p "Enter the template name: " template
   vpsm n "$template"
 }
+
 # choose template to work with
 function src_choose {
-  src_enter
   new="no"
   template=$(find srcpkgs/ -maxdepth 1 | cut -d'/' -f2 | fzf)
   echo "$template"
 }
+
 # try to autobump template (xxtools)
 function src_bump {
   xxautobump "$template"
 }
+
 # clean template build directory
 function src_clean {
   vpsm cl "$template"
 }
+
 # open project homepage
 # shellcheck disable=SC2154,SC1091
 function src_homepage {
   source "srcpkgs/$template/template"
   xdg-open "$homepage"
 }
+
 # check template on repology
 function src_repology {
   xdg-open https://repology.org/projects/?search="$template"
 }
+
 # check for void-packages PRs
 function src_pr_check {
   if [ -z "$pr_number" ]; then
@@ -199,6 +207,7 @@ function create_repo_github {
   git init
   git remote add origin git@github.com:"${USERNAME}/${REPO}.git"
 }
+
 # etnter number of guthub PR
 function src_pr_number {
   read -p "Enter number of your PR: " pr_number
@@ -223,31 +232,37 @@ function set_branch_name {
     branch_name="$template"
   fi
 }
+
 # lint template
 function src_lint {
   vpsm lint "$template"
 }
+
 # checksum template
 function src_checksum {
   vpsm xgsum "$template"
 }
+
 # dit template
 function src_edit {
   #vpsm et "$template"
-  "$TERMINAL" -e "$EDITOR srcpkgs/${template}/template &"
+  "$TERMINAL" -e "$EDITOR srcpkgs/${template}/template" &
 
 }
+
 # downloading and building a template
 function src_build {
   vpsm pkg "$template"
 }
+
 # installing a package
 function src_install {
   xi "$template"
 }
+
 # enter XBPS_DISTDIR
 function src_enter {
-  cd "$XBPS_DISTDIR" && echo "Entered XBPS_DISTDIR"|| echo "XBPS_DISTDIR not set!"
+  cd "$XBPS_DISTDIR" && echo "Entered $XBPS_DISTDIR" && export XBPS_DISTDIR="$XBPS_DISTDIR" && export EDITOR="$EDITOR" || echo "XBPS_DISTDIR not set!"
 }
 
 function save_arguments {
@@ -262,6 +277,7 @@ function save_arguments {
         fi
     done
 }
+
 # Get the list of functions in the script
 declare -F | while read line; do
   # Extract the function name
@@ -281,7 +297,7 @@ done
 
 # Main script
 _define_colors
-_enable_translation
+#_enable_translation
 _create_config
 
 # shellcheck source=./vut.conf
@@ -308,6 +324,7 @@ while true; do
         help_box="hello"
         menu_up="00. Back"
         menu_name="src"
+        src_enter
         _print_src_header
         _print_menu "~" \
           "${cr} Create template" \

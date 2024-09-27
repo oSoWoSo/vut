@@ -6,7 +6,7 @@ menu()
 		help=$(gum style --height 5 --width 25 --padding '1 3' --border double --border-foreground 42 "Gum the Void")
 		content=$(gum style --width 25 --padding '1 3' --border double --border-foreground 212 "version $(gum style --foreground "#04B575" "0.1") alpha.")
 		gum join --horizontal "$help" "$content"
-		gum choose --height=23 --header="$header" projects packages services update btop vsv tools network media vut essential void EXIT
+		gum choose --height=23 --header="$header" projects packages services update btop vsv tools network media vut essential void src EXIT
 	}
 #NICE_MEETING_YOU=$(gum style --height 5 --width 25 --padding '1 3' --border double --border-foreground 42 "Well, it was nice meeting you, $(gum style --foreground 23 "$NAME"). Hope to see you soon!")
 #CHEW_BUBBLE_GUM=$(gum style --width 25 --padding '1 3' --border double --border-foreground 212 "Don't forget to chew some $(gum style --foreground "#04B575" "$GUM") bubble gum.")
@@ -16,7 +16,7 @@ loop()
 	{
 		while :
 		do
-			clear
+			#clear
 			action
 		done
 	}
@@ -67,7 +67,6 @@ input()
 action()
 	{
 		case $answer in
-## menu
 			projects) menu_projects;;
 			packages) menu_packages;;
 			services) menu_services;;
@@ -80,10 +79,8 @@ action()
 			vut) menu_vut;;
 			essential) menu_essential;;
 			void) menu_void;;
-# projects
 			xbps-src) menu_src;;
 			lazygit)  open lazygit;;
-# xbps-src
 			UPDATE) src_update;;
 			new) src_new;;
 			choose) src_choose;;
@@ -99,7 +96,6 @@ action()
 			createPR) src_pr_create;;
 			push) src_push;;
 			Homepage) src_homepage;;
-# shared
 			back) menu;loop;;
 			EXIT) goodbye;;
 		esac
