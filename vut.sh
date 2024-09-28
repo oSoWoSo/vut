@@ -76,7 +76,7 @@ function hlp_xbps {
 }
 
 function config_edit {
-  xdg-open "$config"
+  "$EDITOR" "$config"
 }
 
 function config_edit_vars {
