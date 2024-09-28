@@ -295,6 +295,10 @@ declare -F | while read line; do
   fi
 done
 
+install_essentials() {
+  echo "#TODO"
+}
+
 # Main script
 _define_colors
 #_enable_translation
