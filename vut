@@ -27,9 +27,9 @@ BROWSER="firefox"
 # for color support
 TERM=xterm-256color
 # default terminal emulator: any (but using -e for opening in new windows)
-TERMINAL=xterm
+TERMINAL=kitty
 # default editor: any
-EDITOR="$EDITOR"
+EDITOR=hx
 # commit message using "oc" or "" for git commit
 message_using="oc"
 # DEBUGING : "clear" or "" to not clear
