@@ -59,7 +59,7 @@ _define_colors() {
   c="\[0;"
 }
 _exterm_open() {
-  $TERMINAL -e "$cmd" &
+  $TERMINAL -e $cmd &
 }
 # arguments
 _arguments_get() {
