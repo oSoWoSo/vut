@@ -2,7 +2,7 @@
 # shellcheck disable=SC2154,SC2317
 
 # INTERNAL FUNCTIONS
-# 
+#
 _config() {
   config_path=$HOME/.config/vut
   config=$HOME/.config/vut/vut.conf
@@ -151,7 +151,7 @@ _define_menu() {
       5) cmd=topgrade; _exterm_open;;
       6) system_monitor;;
       7) manage_services;;
-      8) _define_menu_tools;; 
+      8) _define_menu_tools;;
       9) list_arguments;;
       10) config_edit;;
       11) _define_list_essen;_run_list;;
@@ -328,7 +328,6 @@ _define_menu_CHANGETHIS() {
   }
 }
 _define_submenu_tools() {
-{ 
     name="tools"
     items=(
 'translate'
@@ -352,9 +351,9 @@ _exterm_open
         ((i++));
     done;
     menu_items+=("$i" "Back to Main Menu");
-    function menu_actions () 
-    { 
-        case $1 in 
+    function menu_actions ()
+    {
+        case $1 in
             ${#items[@]})
                 _define_menu
             ;;
@@ -367,7 +366,6 @@ _exterm_open
     echo '_define_submenu_'"$submenu_name"'() {' > "$submenu_name.sh";
     declare -f _define_submenu | tail -n +2 >> "$submenu_name.sh";
     echo '}' >> "$submenu_name.sh"
-}
 }
 ### HELP
 function help {
