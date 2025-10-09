@@ -13,13 +13,13 @@ _config() {
 # your gpu
 GPU="amd"
 # where forked repo stored localy
-XBPS_DISTDIR="$HOME/_home/zen/git/void"
+XBPS_DISTDIR="$HOME/void"
 # link to forked repo hosting
 MY_XBPS_REPO="git@github.com:oSoWoSo/VUR.git"
 # name of remote git repo
 GIT_HOST_NAME="gh"
 # your email (for comitting)
-email="zen@osowoso.xyz"
+email="zenobit@disroot.org"
 # your user name (for comitting)
 name="zenobit"
 # default browser: any
@@ -29,7 +29,7 @@ TERM=xterm-256color
 # default terminal emulator: any (but using -e for opening in new windows)
 TERMINAL=xterm
 # default editor: any
-EDITOR="nano"
+EDITOR="$EDITOR"
 # commit message using "oc" or "" for git commit
 message_using="oc"
 # DEBUGING : "clear" or "" to not clear
