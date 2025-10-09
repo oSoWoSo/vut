@@ -1,31 +1,34 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2162,SC2317
 
+################
+#  Variables   #
+################
 # program name
-progname=${0##*/}
+#progname=${0##*/}
+progname=vut
 version="0.23b"
-
 # enable translation
-_enable_translation() {
-  if [[ -f "$HOME/.config/osowoso/ ${progname}/${LANGUAGE}.cfg" ]]; then
-    source "$HOME/.config/osowoso/${progname}/${LANGUAGE}.cfg"
-  elif [[ -f "$HOME/.config/osowoso/${progname}/${LANG:0:5}.cfg" ]]; then
-      source "$HOME/.config/osowoso/${progname}/${LANG:0:5}.cfg"
-  elif [[ -f "$HOME/.config/osowoso/${progname}/${LANG:0:2}.cfg" ]]; then
-    source "$HOME/.config/osowoso/${progname}/${LANG:0:2}.cfg"
+function _enable_translation() {
+  if [[ -f "$HOME/.config/${progname}/${LANGUAGE}.cfg" ]]; then
+    source "$HOME/.config/${progname}/${LANGUAGE}.cfg"
+  elif [[ -f "$HOME/.config/${progname}/${LANG:0:5}.cfg" ]]; then
+      source "$HOME/.config/${progname}/${LANG:0:5}.cfg"
+  elif [[ -f "$HOME/.config/${progname}/${LANG:0:2}.cfg" ]]; then
+    source "$HOME/.config/${progname}/${LANG:0:2}.cfg"
   else
-    source "$HOME/.config/osowoso/${progname}/en.cfg"
+    source "$HOME/.config/${progname}/en.cfg"
   fi
 }
 
-_create_config() {
-  config_path="$HOME/.config/osowoso/${progname}"
-  config="$HOME/.config/osowoso/${progname}/${progname}.conf"
+function _create_config() {
+  config_path="$HOME/.config/${progname}"
+  config="$HOME/.config/${progname}/${progname}.conf"
   mkdir -p "$config_path"
   touch "$config"
 }
 
-_define_colors() {
+function _define_colors() {
   cr="\033[0;31m"
   cg="\033[0;32m"
   green="\033[32m"
@@ -39,7 +42,7 @@ _define_colors() {
   c="\[0;"
 }
 
-_print_menu() {
+function _print_menu() {
   "$clear_yes" >/dev/null 2>&1
   echo -e "${bold}${header}${cc}"
   echo -e "${bold}${1}${cc}"
@@ -51,14 +54,14 @@ _print_menu() {
   echo -e "${cr}${menu_up}${cc}"
 }
 
-_print_header() {
+function _print_header() {
   HEADER_BUBBLE=$(gum style --height 5 --width 25 --padding '1 3' --border double --border-foreground 57 "Void Ultimate Tool version $version")
   HELP_BUBBLE=$(gum style --width 25 --padding '1 3' --border double --border-foreground 212 "current dir $(gum style --foreground "#04B575" "Heeelp")")
   gum join --horizontal "$HEADER_BUBBLE" "$HELP_BUBBLE"
 }
 
-_print_src_header() {
-  HEADER_BUBBLE=$(gum style --height 5 --width 25 --padding '1 3' --border double --border-foreground 57 "Tools to work with xbps-src Using:fzf git vpsm xtools xxtools")
+function _print_src_header() {
+  HEADER_BUBBLE=$(gum style --height 5 --width 25 --padding '1 3' --border double --border-foreground 57 "Tools to work with xbps-src Using:fzf git xtools xxtools")
   HELP_BUBBLE=$(gum style --width 25 --padding '1 3' --border double --border-foreground 212 "XBPS_DISTDIR \n $XBPS_DISTDIR repo: $MY_XBPS_REPO $(git branch | grep '*') PR: $pr_number $(gum style --foreground "#04B575" "Heeelp")")
   gum join --horizontal "$HEADER_BUBBLE" "$HELP_BUBBLE"
 }
@@ -120,13 +123,11 @@ function config_edit_vars {
     esac
   done
 }
-
 # listing available templates
 function list_templates {
   cd "$XBPS_DISTDIR" || exit 2
   find ./*/ | sed 's#/##'
 }
-
 # list available arguments
 function list_arguments {
   cat "$config_path/arguments"
@@ -147,48 +148,40 @@ function list_arguments2 {
 function src_list_gen {
   ls srcpkgs/ > "$config_path/list"
 }
-
 # updating templates from git
 function src_update {
-  vpsm upr && read -n 1 -s -r -p "Press any key to continue"
+  ./xbps-src bootstrap-update && read -n 1 -s -r -p "Press any key to continue"
 }
-
 # create new template
 function src_new {
   new="yes"
   read -p "Enter the template name: " template
-  vpsm n "$template"
+  xnew "$template"
 }
-
 # choose template to work with
 function src_choose {
   new="no"
   template=$(find srcpkgs/ -maxdepth 1 | cut -d'/' -f2 | fzf)
   echo "$template"
 }
-
 # try to autobump template (xxtools)
 function src_bump {
   xxautobump "$template"
 }
-
 # clean template build directory
 function src_clean {
-  vpsm cl "$template"
+  ./xbps-src clean "$template"
 }
-
-# open project homepage
+# open project homepge
 # shellcheck disable=SC2154,SC1091
 function src_homepage {
   source "srcpkgs/$template/template"
   xdg-open "$homepage"
 }
-
 # check template on repology
 function src_repology {
   xdg-open https://repology.org/projects/?search="$template"
 }
-
 # check for void-packages PRs
 function src_pr_check {
   if [ -z "$pr_number" ]; then
@@ -207,7 +200,6 @@ function create_repo_github {
   git init
   git remote add origin git@github.com:"${USERNAME}/${REPO}.git"
 }
-
 # etnter number of guthub PR
 function src_pr_number {
   read -p "Enter number of your PR: " pr_number
@@ -232,34 +224,31 @@ function set_branch_name {
     branch_name="$template"
   fi
 }
-
 # lint template
 function src_lint {
-  vpsm lint "$template"
+  xlint "$template"
 }
-
 # checksum template
 function src_checksum {
-  vpsm xgsum "$template"
+  xgensum -i "$template"
 }
-
 # dit template
 function src_edit {
   #vpsm et "$template"
-  "$TERMINAL" -e "$EDITOR srcpkgs/${template}/template" &
+  #"$TERMINAL" -e "$EDITOR srcpkgs/${template}/template" &
+  "$EDITOR srcpkgs/${template}/template" &
 
 }
-
 # downloading and building a template
 function src_build {
-  vpsm pkg "$template"
+  cmd ./xbps-src pkg "$template" | tspin
 }
-
 # installing a package
 function src_install {
-  xi "$template"
+  if ! command -v $(xi "$template"); then
+    gum confirm "Force reinstall?" && xi -fy "$template"
+  fi
 }
-
 # enter XBPS_DISTDIR
 function src_enter {
   cd "$XBPS_DISTDIR" && echo "Entered $XBPS_DISTDIR" && export XBPS_DISTDIR="$XBPS_DISTDIR" && export EDITOR="$EDITOR" || echo "XBPS_DISTDIR not set!"
@@ -278,7 +267,13 @@ function save_arguments {
     done
 }
 
-# Get the list of functions in the script
+function install_essentials() {
+  echo "#TODO"
+}
+
+###############################################
+#   Get the list of functions in the script   #
+###############################################
 declare -F | while read line; do
   # Extract the function name
   func_name=$(echo "$line" | awk '{print $3}')
@@ -295,22 +290,27 @@ declare -F | while read line; do
   fi
 done
 
-install_essentials() {
-  echo "#TODO"
-}
-
-# Main script
+###################
+#   Main script   #
+###################
 _define_colors
 #_enable_translation
 _create_config
-
 # shellcheck source=./vut.conf
 source "$config"
+
+function cmd() {
+  if [ "$output_to" == 'zellij' ]; then
+    zellij run -- "$@"
+  elif [ "$output_to" == 'terminal' ]; then
+    "$TERMINAL" -e "$@"
+  fi
+}
 
 while true; do
   header_box="Void Ultimate Tool"
   help_box="$hlp_main"
-  menu_up="00. Quit"
+  menu_up="0. Quit"
   menu_name="main"
   _print_header
   _print_menu "main menu:" \
@@ -326,7 +326,7 @@ while true; do
     1)
       while true; do
         help_box="hello"
-        menu_up="00. Back"
+        menu_up="0. Back"
         menu_name="src"
         src_enter
         _print_src_header
@@ -399,10 +399,10 @@ while true; do
           16)
             src_homepage
             ;;
-          0)
+          00)
             hlp_src
             ;;
-          00)
+          0)
             break
             ;;
           *)
@@ -415,7 +415,7 @@ while true; do
       while true; do
         # second sub-menu
         header="Tools for working with packages"
-        menu_up="00. Back"
+        menu_up="0. Back"
         menu_name="xbps"
         _print_menu "PACKAGES:" \
           "Install Package" \
@@ -428,10 +428,10 @@ while true; do
           2)
             remove_package
             ;;
-          0)
+          00)
             hlp_xbps
             ;;
-          00)
+          0)
             break
             ;;
           *)
@@ -459,10 +459,10 @@ while true; do
     7)
       install_essentials
       ;;
-    0)
+    00)
       hlp_main
       ;;
-    00)
+    0)
       exit 0
       ;;
     *)
