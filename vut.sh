@@ -464,8 +464,8 @@ while true; do
       read -p "Press Enter to continue"
       ;;
     6)
-      config_edit
-      read -p "Press Enter to continue"
+      config_edit && source "$config" && echo "Config sourced"
+      #read -p "Press Enter to continue"
       ;;
     7)
       install_essentials
