@@ -351,8 +351,8 @@ while true; do
           "${cg}${template}${cc}create PR" \
           "${cg}${template}${cc}push" \
           "generate list of current templates" \
-          "${cc} open template${cc} homepage"
         read -p "Select an operation (00 0-16): " template_choice
+          "${cc}open template${cc} homepage"
         case "$template_choice" in
           1)
             src_new
