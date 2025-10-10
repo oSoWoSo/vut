@@ -241,7 +241,7 @@ function src_checksum {
 function src_edit {
   #vpsm et "$template"
   #"$TERMINAL" -e "$EDITOR srcpkgs/${template}/template" &
-  "$EDITOR srcpkgs/${template}/template" &
+  $EDITOR srcpkgs/${template}/template
 
 }
 # downloading and building a template
