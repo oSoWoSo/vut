@@ -54,8 +54,9 @@ function _print_menu() {
   for ((i=1; i<=$#; i++)); do
     echo -e "${clc}$i.${cc} ${bold}${!i}${cc}"
   done
-  echo -e "${cr}${menu_up}${cc}"
   echo -e "${clc}h${cc}   Help${cc}"
+  echo -e "${cg}${menu_up}${cc}"
+  echo -e "${cr}q   Quit${cc}"
 }
 
 function _print_header() {
@@ -313,8 +314,8 @@ function cmd() {
 
 while true; do
   header_box="Void Ultimate Tool"
-  menu_up="0. Quit"
   help_box="$help_main"
+  #menu_up="0.  Quit"
   menu_name="main"
   _print_header
   _print_menu "main menu:" \
@@ -330,7 +331,7 @@ while true; do
     1)
       while true; do
         help_box="hello"
-        menu_up="0. Back"
+        menu_up="0.  Back"
         menu_name="src"
         src_enter
         _print_src_header
@@ -409,6 +410,9 @@ while true; do
           h)
             help_src
             ;;
+          q)
+            exit 0
+            ;;
           *)
             echo "Invalid choice: $choice"
             ;;
@@ -437,6 +441,9 @@ while true; do
             ;;
           0)
             break
+            ;;
+          q)
+            exit 0
             ;;
           *)
             echo "Invalid selection, please try again."
@@ -467,6 +474,9 @@ while true; do
       help_main
       ;;
     0)
+      break
+      ;;
+    q)
       exit 0
       ;;
     *)
