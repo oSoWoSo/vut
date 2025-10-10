@@ -7,7 +7,7 @@
 # program name
 #progname=${0##*/}
 progname=vut
-version="0.23b"
+version="0.24b"
 # enable translation
 function _enable_translation() {
   if [[ -f "$HOME/.config/${progname}/${LANGUAGE}.cfg" ]]; then
