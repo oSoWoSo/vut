@@ -42,6 +42,10 @@ function _define_colors() {
   c="\[0;"
 }
 
+function _define_gum() {
+  echo "#TODO"
+}
+
 function _print_menu() {
   "$clear_yes" >/dev/null 2>&1
   echo -e "${bold}${header}${cc}"
@@ -50,8 +54,8 @@ function _print_menu() {
   for ((i=1; i<=$#; i++)); do
     echo -e "${clc}$i.${cc} ${bold}${!i}${cc}"
   done
-  echo -e "${clc}0.${cc}  Help${cc}"
   echo -e "${cr}${menu_up}${cc}"
+  echo -e "${clc}h${cc}   Help${cc}"
 }
 
 function _print_header() {
@@ -66,16 +70,16 @@ function _print_src_header() {
   gum join --horizontal "$HEADER_BUBBLE" "$HELP_BUBBLE"
 }
 
-function hlp_main {
-  "#TODO"
+function help_main {
+  echo "#TODO"
 }
 
-function hlp_src {
-  "#TODO"
+function help_src {
+  echo "#TODO"
 }
 
-function hlp_xbps {
-  "#TODO"
+function help_xbps {
+  echo "#TODO"
 }
 
 function config_edit {
@@ -309,8 +313,8 @@ function cmd() {
 
 while true; do
   header_box="Void Ultimate Tool"
-  help_box="$hlp_main"
   menu_up="0. Quit"
+  help_box="$help_main"
   menu_name="main"
   _print_header
   _print_menu "main menu:" \
@@ -399,11 +403,11 @@ while true; do
           16)
             src_homepage
             ;;
-          00)
-            hlp_src
-            ;;
           0)
             break
+            ;;
+          h)
+            help_src
             ;;
           *)
             echo "Invalid choice: $choice"
@@ -428,8 +432,8 @@ while true; do
           2)
             remove_package
             ;;
-          00)
-            hlp_xbps
+          h)
+            help_xbps
             ;;
           0)
             break
@@ -459,8 +463,8 @@ while true; do
     7)
       install_essentials
       ;;
-    00)
-      hlp_main
+    h)
+      help_main
       ;;
     0)
       exit 0
