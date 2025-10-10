@@ -326,7 +326,7 @@ while true; do
     "${cyan} List possible arguments" \
     "${cyan} Edit config file" \
     "${cc} Install essential programs"
-  read -p "Select an operation (00 0-7): " main_choice
+  read -p "Select an operation (q,h or 1 - 7): " main_choice
   case "$main_choice" in
     1)
       while true; do
@@ -351,8 +351,8 @@ while true; do
           "${cg}${template}${cc}create PR" \
           "${cg}${template}${cc}push" \
           "generate list of current templates" \
-        read -p "Select an operation (00 0-16): " template_choice
           "${cc}open template${cc} homepage"
+        read -p "Select an operation (q,h,0 or 1 - 16): " template_choice
         case "$template_choice" in
           1)
             src_new
@@ -428,7 +428,7 @@ while true; do
         _print_menu "PACKAGES:" \
           "Install Package" \
           "Remove Package"
-        read -p "Select an operation (00 0-2): " package_choice
+        read -p "Select an operation (q,h,0 or 1 - 2): " package_choice
         case "$package_choice" in
           1)
             install_package
