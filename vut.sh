@@ -339,17 +339,17 @@ while true; do
           "${cr} Create template" \
           "${cr} Choose template" \
           "${cy}${template}${cc} on repology" \
-          "autobump ${cg}${template}${clc}" \
-          "edit ${cg}${template}${cc}" \
-          "checksum ${cg}${template}${clc}" \
-          "lint ${cg}${template}${clc}" \
-          "build ${cg}${template}${clc}" \
-          "install ${cg}${template}${clc}" \
-          "${cc} Update${clc}" \
-          "${cc} Clean ${cg}${template}${clc}" \
-          "${cg}${template}${cc} PR check" \
-          "${cg}${template}${cc} create PR" \
-          "${cg}${template}${cc} push" \
+          " autobump ${cg}${template}${clc}" \
+          " edit ${cg}${template}${cc}" \
+          " checksum ${cg}${template}${clc}" \
+          " lint ${cg}${template}${clc}" \
+          " build ${cg}${template}${clc}" \
+          " install ${cg}${template}${clc}" \
+          "${cc}Update${clc}" \
+          "${cc}Clean ${cg}${template}${clc}" \
+          "${cg}${template}${cc}PR check" \
+          "${cg}${template}${cc}create PR" \
+          "${cg}${template}${cc}push" \
           "generate list of current templates" \
           "${cc} open template${cc} homepage"
         read -p "Select an operation (00 0-16): " template_choice
