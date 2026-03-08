@@ -14,11 +14,13 @@ A simple shell script that provides a menu of useful tools for working with [XBP
 
 ## Usage
 
-Clone this repository and run the `vut` script:
+Clone this repository and run the [`vut`](./vut) script:
 
+```bash
 git clone https://github.com/osowoso/vut.git
 cd vut
-./vut.sh
+./vut
+```
 
 ## Features
 
@@ -28,13 +30,36 @@ The tool provides a menu with the following options:
 2. **PACKAGES menu**: Provides options for installing and removing packages using `xbps-install`.
 3. **Update xbps**: Updates `xbps` and the XBPS package index using `xbps-install -Suv`.
 4. **Update all**: Updates all packages on the system using [topgrade](https://github.com/r-darwish/topgrade) (if installed).
-5. **List possible arguments**: Lists the available arguments for the `vut` script.
-6. **Edit config file**: Opens the configuration file (`~/.config/vut/vut.conf`) in the default editor.
+5. **List possible arguments**: Lists the available arguments for the `vut` script (see [arguments.list](./arguments.list)).
+6. **Edit config file**: Opens the configuration file ([`~/.config/vut/vut.conf`](./vut.conf)) in the default editor.
 7. **Install essential programs**: Installs essential programs for development (git, fzf, vpsm, xxtools).
 
 ## Configuration
 
 The tool is configured using the `~/.config/vut/vut.conf` file. This file contains a number of variables that control the behavior of the tool. The default configuration file is created when you run the `vut` script for the first time, and you can edit it manually if necessary.
+
+## Testing
+
+This project uses [clitest](https://github.com/aureliojargas/clitest) for automated testing. The test file is [`test.md`](./test.md).
+
+### Install clitest
+
+```bash
+curl -sOL https://raw.githubusercontent.com/aureliojargas/clitest/master/clitest
+chmod +x clitest
+sudo mv clitest /usr/bin
+```
+
+### Run tests
+
+```bash
+clitest test.md
+```
+
+Expected output:
+```
+OK: 12 of 12 tests passed
+```
 
 ## License
 
