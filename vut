@@ -98,14 +98,14 @@ function config_edit_vars {
 
   # if the user didn't enter any variable number, edit all variables
   if [[ -z $varnums ]]; then
-    varnums=$(awk -F= '/^[^#]/ {print NR}' "$HOME/.config/vut/vut.conf")
+    varnums=$(awk -F= '/^[^#]/ {print NR}' "$config")
   fi
 
   # iterate over the selected variables and offer the user the option to edit each one
   for varnum in $varnums; do
     # get the variable name and current value from the configuration file
-    var=$(awk -F= '/^[^#]/ {if (NR == '$varnum') print $1}' "$HOME/.config/vut/vut.conf")
-    varvalue=$(grep "^$var=" "$HOME/.config/vut/vut.conf" | cut -d= -f2)
+    var=$(awk -F= '/^[^#]/ {if (NR == '$varnum') print $1}' "$config")
+    varvalue=$(grep "^$var=" "$config" | cut -d= -f2)
 
     # if the variable doesn't exist, inform the user and skip it
     if [[ -z $varvalue ]]; then
@@ -119,7 +119,7 @@ function config_edit_vars {
       y|Y )
         # get the new value of the variable from the user and change it in the configuration file
         read -p "Enter the new value for $var: " newvalue
-        sed -i "s/^$var=.*/$var=$newvalue/" "$HOME/.config/vut/vut.conf"
+        sed -i "s/^$var=.*/$var=$newvalue/" "$config"
         echo "Variable $var has been changed to \"$newvalue\"."
         ;;
       * )
@@ -250,7 +250,9 @@ function src_build {
 }
 # installing a package
 function src_install {
-  if ! command -v $(xi "$template"); then
+  if ! xbps-query -l "$template" >/dev/null 2>&1; then
+    gum confirm "Package not installed. Install?" && xi -fy "$template"
+  else
     gum confirm "Force reinstall?" && xi -fy "$template"
   fi
 }
@@ -274,6 +276,26 @@ function save_arguments {
 
 function install_essentials() {
   echo "#TODO"
+}
+
+# Install a package using xbps
+function install_package {
+  read -p "Enter package name to install: " pkg_name
+  if [[ -n "$pkg_name" ]]; then
+    sudo xbps-install -S "$pkg_name"
+  else
+    echo "No package name entered."
+  fi
+}
+
+# Remove a package using xbps
+function remove_package {
+  read -p "Enter package name to remove: " pkg_name
+  if [[ -n "$pkg_name" ]]; then
+    sudo xbps-remove -R "$pkg_name"
+  else
+    echo "No package name entered."
+  fi
 }
 
 ###############################################
