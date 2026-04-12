@@ -88,6 +88,7 @@ function config_edit {
 }
 
 function config_edit_vars {
+  #TODO: Check this
   "$clear_yes" >/dev/null 2>&1
   # display a list of variables
   echo "List of variables in the configuration file:"
@@ -201,10 +202,25 @@ function src_pr_create {
 }
 
 function create_repo_github {
-  curl -H "$GITHUB_TOKEN" https://api.github.com/user/repos -d '{"name":"REPO"}'
+  if [[ -z "$REPO" ]]; then
+    echo "Error: REPO variable not set"
+    return 1
+  fi
+  
+  response=$(curl -s -w "%{http_code}" -H "Authorization: Bearer $GITHUB_TOKEN" \
+    https://api.github.com/user/repos \
+    -d "{\"name\":\"$REPO\"}")
+  
+  http_code="${response: -3}"
+  if [[ "$http_code" != "201" ]]; then
+    echo "Failed to create repo: $response"
+    return 1
+  fi
+  
   git init
-  git remote add origin git@github.com:"${USERNAME}/${REPO}.git"
+  git remote add origin "git@github.com:${USERNAME}/${REPO}.git"
 }
+
 # etnter number of guthub PR
 function src_pr_number {
   read -p "Enter number of your PR: " pr_number
@@ -262,17 +278,12 @@ function src_enter {
 }
 
 function save_arguments {
-    # Get the list of functions in the script
-    declare -F | while read line; do
-        # Extract the function name
-        func_name=$(echo "$line" | awk '{print $3}')
-        # Check if the function starts with the word "function"
-        if [[ $func_name == function* ]]; then
-            # Write the function name to the "arguments" file
-            echo "${func_name/function /}" > "${config_path}/arguments"
-        fi
-    done
-}
+  while read line; do
+    func_name=$(echo "$line" | awk '{print $3}')
+    [[ $func_name == function* ]] && echo "${func_name/function /}"
+  done
+} < <(declare -F)
+} > "${config_path}/arguments"
 
 function install_essentials() {
   echo "#TODO"
@@ -324,7 +335,7 @@ _define_colors
 #_enable_translation
 _create_config
 # shellcheck source=./vut.conf
-source "$config"
+source "$config" || exit 1
 
 function cmd() {
   if [ "$output_to" == 'zellij' ]; then
